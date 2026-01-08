@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>購入品記録アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 flex justify-center items-start p-4">
+  <div class="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-6 space-y-6">
+    <!-- ヘッダー -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-800">
+          購入品記録アプリ
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">
+          カメラで撮影して、購入品の情報といっしょに保存します（ブラウザのローカルストレージに保存）。
+        </p>
+      </div>
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="text-xs text-slate-600">ローカル保存 / オフライン対応</span>
+      </div>
+    </header>
+
+    <main class="grid md:grid-cols-2 gap-6">
+      <!-- 左側：カメラ＋登録フォーム -->
+      <section class="space-y-4">
+        <!-- カメラ表示部分 -->
+        <div class="space-y-3">
+          <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">1</span>
+            カメラで撮影
+          </h2>
+          <div class="relative bg-black rounded-2xl overflow-hidden aspect-video flex items-center justify-center">
+            <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
+            <div id="noCameraMessage" class="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/60 hidden">
+              カメラを利用できませんでした
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button id="startCameraBtn" class="px-4 py-2 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+              カメラ起動
+            </button>
+            <button id="stopCameraBtn" class="px-4 py-2 text-sm font-medium rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300 transition">
+              カメラ停止
+            </button>
+            <button id="captureBtn" class="px-4 py-2 text-sm font-semibold rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition">
+              撮影して画像を登録
+            </button>
+          </div>
+          <canvas id="canvas" class="hidden"></canvas>
+          <div id="previewWrapper" class="mt-2 hidden">
+            <p class="text-xs text-slate-500 mb-1">撮影した画像プレビュー</p>
+            <img id="previewImage" alt="撮影プレビュー" class="w-full rounded-xl border border-slate-200 object-contain max-h-56 bg-slate-50" />
+          </div>
+        </div>
+
+        <!-- 登録フォーム -->
+        <div class="space-y-3 pt-4 border-t border-slate-100">
+          <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">2</span>
+            購入品情報を入力
+          </h2>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">
+              品名
+              <input
+                id="itemNameInput"
+                type="text"
+                placeholder="例: ノートパソコン用マウス"
+                class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2"
+              />
+            </label>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">
+              コメント（任意）
+              <textarea
+                id="commentInput"
+                rows="3"
+                placeholder="例: セールで購入、予備として。"
+                class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2"
+              ></textarea>
+            </label>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">
+              登録日時
+              <input
+                id="dateTimeDisplay"
+                type="text"
+                class="mt-1 w-full rounded-xl border-slate-200 bg-slate-50 text-sm px-3 py-2 text-slate-600"
+                readonly
+              />
+            </label>
+            <p class="text-xs text-slate-400">
+              登録ボタンを押した時点の日時が保存されます。
+            </p>
+          </div>
+          <button
+            id="saveItemBtn"
+            class="w-full mt-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
+          >
+            この内容で登録
+          </button>
+        </div>
+      </section>
+
+      <!-- 右側：一覧＋詳細 -->
+      <section class="space-y-4">
+        <!-- 一覧 -->
+        <div class="space-y-3">
+          <h2 class="text-lg font-semibold text-slate-800 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">3</span>
+              登録済み一覧
+            </span>
+          </h2>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50/80 max-h-72 overflow-y-auto">
+            <ul id="itemList" class="divide-y divide-slate-200">
+              <!-- JSで挿入 -->
+            </ul>
+          </div>
+          <p class="text-xs text-slate-400">
+            品名をクリックすると、右下に詳細が表示されます。
+          </p>
+        </div>
+
+        <!-- 詳細表示 -->
+        <div class="space-y-3">
+          <h2 class="text-lg font-semibold text-slate-800">
+            詳細表示
+          </h2>
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p id="detailName" class="font-semibold text-slate-800 text-base">
+                  項目が選択されていません
+                </p>
+                <p id="detailDateTime" class="text-xs text-slate-500 mt-1">
+                  登録日時: -
+                </p>
+              </div>
+              <span id="detailBadge" class="inline-flex items-center px-2 py-1 rounded-full bg-slate-100 text-slate-500 text-xs">
+                未選択
+              </span>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-slate-600 mb-1">コメント</p>
+              <p id="detailComment" class="text-sm text-slate-700 bg-slate-50 rounded-xl px-3 py-2 min-h-[2.5rem]">
+                -
+              </p>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-slate-600 mb-1">画像</p>
+              <div class="border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-center min-h-[160px]">
+                <img
+                  id="detailImage"
+                  alt="購入品画像"
+                  class="max-h-64 max-w-full object-contain rounded-xl hidden"
+                />
+                <span id="noDetailImageText" class="text-xs text-slate-400">
+                  画像が登録されていません
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ==== 定数・変数 ====
+    const STORAGE_KEY = "purchaseRecords";
+
+    let videoStream = null;
+    let capturedImageDataUrl = null;
+    let items = [];
+
+    // ==== DOM取得 ====
+    const video = document.getElementById("video");
+    const noCameraMessage = document.getElementById("noCameraMessage");
+    const canvas = document.getElementById("canvas");
+    const previewWrapper = document.getElementById("previewWrapper");
+    const previewImage = document.getElementById("previewImage");
+
+    const startCameraBtn = document.getElementById("startCameraBtn");
+    const stopCameraBtn = document.getElementById("stopCameraBtn");
+    const captureBtn = document.getElementById("captureBtn");
+
+    const itemNameInput = document.getElementById("itemNameInput");
+    const commentInput = document.getElementById("commentInput");
+    const dateTimeDisplay = document.getElementById("dateTimeDisplay");
+    const saveItemBtn = document.getElementById("saveItemBtn");
+
+    const itemList = document.getElementById("itemList");
+    const detailName = document.getElementById("detailName");
+    const detailDateTime = document.getElementById("detailDateTime");
+    const detailComment = document.getElementById("detailComment");
+    const detailImage = document.getElementById("detailImage");
+    const noDetailImageText = document.getElementById("noDetailImageText");
+    const detailBadge = document.getElementById("detailBadge");
+
+    // ==== ユーティリティ ====
+    function formatDateTime(isoString) {
+      if (!isoString) return "-";
+      const d = new Date(isoString);
+      // 日本時間表示
+      return d.toLocaleString("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    function updateNowDisplay() {
+      dateTimeDisplay.value = formatDateTime(new Date().toISOString());
+    }
+
+    // ==== カメラ制御 ====
+    async function startCamera() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          noCameraMessage.classList.remove("hidden");
+          return;
+        }
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }, // スマホだと背面カメラ優先
+          audio: false,
+        });
+        video.srcObject = videoStream;
+        noCameraMessage.classList.add("hidden");
+      } catch (err) {
+        console.error("カメラ起動エラー:", err);
+        noCameraMessage.classList.remove("hidden");
+      }
+    }
+
+    function stopCamera() {
+      if (videoStream) {
+        videoStream.getTracks().forEach((track) => track.stop());
+        videoStream = null;
+        video.srcObject = null;
+      }
+    }
+
+    function captureImage() {
+      if (!videoStream) {
+        alert("先にカメラを起動してください。");
+        return;
+      }
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      if (!width || !height) {
+        alert("カメラ映像の読み込みを待ってから撮影してください。");
+        return;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, width, height);
+
+      capturedImageDataUrl = canvas.toDataURL("image/jpeg");
+      previewImage.src = capturedImageDataUrl;
+      previewWrapper.classList.remove("hidden");
+    }
+
+    // ==== ローカルストレージ ====
+    function loadItemsFromStorage() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        items = [];
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          items = parsed;
+        } else {
+          items = [];
+        }
+      } catch (e) {
+        console.error("ローカルストレージ読み込みエラー:", e);
+        items = [];
+      }
+    }
+
+    function saveItemsToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    // ==== 一覧描画 ====
+    function renderItemList(selectedId = null) {
+      itemList.innerHTML = "";
+
+      if (!items.length) {
+        const li = document.createElement("li");
+        li.className = "px-4 py-3 text-xs text-slate-400";
+        li.textContent = "まだ購入品は登録されていません。";
+        itemList.appendChild(li);
+        return;
+      }
+
+      // 新しい順に並べる
+      const sorted = [...items].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      sorted.forEach((item) => {
+        const li = document.createElement("li");
+        const isSelected = item.id === selectedId;
+        li.className =
+          "flex items-center justify-between px-4 py-3 text-sm cursor-pointer hover:bg-slate-100 transition " +
+          (isSelected ? "bg-blue-50" : "");
+
+        const left = document.createElement("div");
+        left.className = "flex flex-col";
+        const nameSpan = document.createElement("span");
+        nameSpan.className =
+          "font-medium " + (isSelected ? "text-blue-700" : "text-slate-800");
+        nameSpan.textContent = item.name || "(無題)";
+
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "text-xs text-slate-500";
+        dateSpan.textContent = formatDateTime(item.createdAt);
+
+        left.appendChild(nameSpan);
+        left.appendChild(dateSpan);
+
+        const right = document.createElement("div");
+        right.className = "flex items-center gap-2";
+        const hasImageBadge = document.createElement("span");
+        hasImageBadge.className =
+          "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] " +
+          (item.imageDataUrl
+            ? "bg-emerald-50 text-emerald-600"
+            : "bg-slate-100 text-slate-500");
+        hasImageBadge.textContent = item.imageDataUrl ? "画像あり" : "画像なし";
+
+        right.appendChild(hasImageBadge);
+
+        li.appendChild(left);
+        li.appendChild(right);
+
+        li.addEventListener("click", () => {
+          showDetail(item.id);
+        });
+
+        itemList.appendChild(li);
+      });
+    }
+
+    // ==== 詳細表示 ====
+    function showDetail(id) {
+      const item = items.find((i) => i.id === id);
+      if (!item) return;
+
+      detailName.textContent = item.name || "(無題)";
+      detailDateTime.textContent = "登録日時: " + formatDateTime(item.createdAt);
+      detailComment.textContent = item.comment || "コメントは登録されていません。";
+
+      if (item.imageDataUrl) {
+        detailImage.src = item.imageDataUrl;
+        detailImage.classList.remove("hidden");
+        noDetailImageText.classList.add("hidden");
+      } else {
+        detailImage.src = "";
+        detailImage.classList.add("hidden");
+        noDetailImageText.classList.remove("hidden");
+      }
+
+      detailBadge.textContent = "表示中";
+      detailBadge.className =
+        "inline-flex items-center px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-xs";
+
+      renderItemList(id); // 選択状態を更新
+    }
+
+    // ==== 登録処理 ====
+    function handleSaveItem() {
+      const name = itemNameInput.value.trim();
+      const comment = commentInput.value.trim();
+
+      if (!name) {
+        alert("品名を入力してください。");
+        return;
+      }
+
+      if (!capturedImageDataUrl) {
+        const ok = confirm(
+          "画像が撮影されていません。このまま画像なしで登録しますか？"
+        );
+        if (!ok) return;
+      }
+
+      const nowIso = new Date().toISOString();
+      const newItem = {
+        id: "item_" + nowIso + "_" + Math.random().toString(16).slice(2),
+        name,
+        comment,
+        createdAt: nowIso,
+        imageDataUrl: capturedImageDataUrl || null,
+      };
+
+      items.push(newItem);
+      saveItemsToStorage();
+
+      // フォーム・プレビューをリセット
+      itemNameInput.value = "";
+      commentInput.value = "";
+      capturedImageDataUrl = null;
+      previewImage.src = "";
+      previewWrapper.classList.add("hidden");
+      updateNowDisplay();
+
+      renderItemList(newItem.id);
+      showDetail(newItem.id);
+    }
+
+    // ==== イベント設定 ====
+    document.addEventListener("DOMContentLoaded", () => {
+      updateNowDisplay();
+      loadItemsFromStorage();
+      renderItemList();
+
+      if (items.length) {
+        showDetail(items[0].id);
+      }
+
+      startCameraBtn.addEventListener("click", startCamera);
+      stopCameraBtn.addEventListener("click", stopCamera);
+      captureBtn.addEventListener("click", captureImage);
+      saveItemBtn.addEventListener("click", handleSaveItem);
+    });
+
+    // ページを離れるときにカメラを停止
+    window.addEventListener("beforeunload", () => {
+      stopCamera();
+    });
+  </script>
+</body>
+</html>
