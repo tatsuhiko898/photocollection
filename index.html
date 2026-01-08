@@ -51,10 +51,19 @@
               撮影して画像を登録
             </button>
           </div>
+
+          <!-- ★ 追加：登録中止ボタン -->
+          <div class="mt-2">
+            <button id="cancelImageBtn" class="px-4 py-2 text-sm font-medium rounded-full bg-rose-500 text-white hover:bg-rose-600 transition">
+              登録中止（撮影した写真を破棄）
+            </button>
+          </div>
+
           <canvas id="canvas" class="hidden"></canvas>
-          <div id="previewWrapper" class="mt-2 hidden">
-            <p class="text-xs text-slate-500 mb-1">撮影した画像プレビュー</p>
-            <img id="previewImage" alt="撮影プレビュー" class="w-full rounded-xl border border-slate-200 object-contain max-h-56 bg-slate-50" />
+
+          <!-- ★ プレビューを横長で表示 -->
+          <div id="previewWrapper" class="mt-2 hidden w-full rounded-xl border border-slate-200 bg-slate-50 overflow-hidden aspect-video">
+            <img id="previewImage" alt="撮影プレビュー" class="w-full h-full object-cover" />
           </div>
         </div>
 
@@ -156,11 +165,12 @@
             </div>
             <div>
               <p class="text-xs font-medium text-slate-600 mb-1">画像</p>
-              <div class="border border-slate-200 rounded-xl bg-slate-50 flex items-center justify-center min-h-[160px]">
+              <!-- ★ 詳細も横長で表示 -->
+              <div class="border border-slate-200 rounded-xl bg-slate-50 w-full aspect-video flex items-center justify-center overflow-hidden">
                 <img
                   id="detailImage"
                   alt="購入品画像"
-                  class="max-h-64 max-w-full object-contain rounded-xl hidden"
+                  class="w-full h-full object-cover rounded-xl hidden"
                 />
                 <span id="noDetailImageText" class="text-xs text-slate-400">
                   画像が登録されていません
@@ -191,6 +201,7 @@
     const startCameraBtn = document.getElementById("startCameraBtn");
     const stopCameraBtn = document.getElementById("stopCameraBtn");
     const captureBtn = document.getElementById("captureBtn");
+    const cancelImageBtn = document.getElementById("cancelImageBtn");
 
     const itemNameInput = document.getElementById("itemNameInput");
     const commentInput = document.getElementById("commentInput");
@@ -209,7 +220,6 @@
     function formatDateTime(isoString) {
       if (!isoString) return "-";
       const d = new Date(isoString);
-      // 日本時間表示
       return d.toLocaleString("ja-JP", {
         year: "numeric",
         month: "2-digit",
@@ -231,7 +241,7 @@
           return;
         }
         videoStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }, // スマホだと背面カメラ優先
+          video: { facingMode: "environment" },
           audio: false,
         });
         video.srcObject = videoStream;
@@ -250,26 +260,55 @@
       }
     }
 
+    // ★ 横長（画面と同じ比率）で切り取って保存
     function captureImage() {
       if (!videoStream) {
         alert("先にカメラを起動してください。");
         return;
       }
-      const width = video.videoWidth;
-      const height = video.videoHeight;
-      if (!width || !height) {
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+      if (!videoWidth || !videoHeight) {
         alert("カメラ映像の読み込みを待ってから撮影してください。");
         return;
       }
 
-      canvas.width = width;
-      canvas.height = height;
+      const displayWidth = video.clientWidth || videoWidth;
+      const displayHeight = video.clientHeight || videoHeight;
+      const targetAspect = displayWidth / displayHeight; // 表示中の横長比率
+      const videoAspect = videoWidth / videoHeight;
+
+      let sx, sy, sWidth, sHeight;
+
+      if (videoAspect > targetAspect) {
+        // 動画の方が横に広い ⇒ 左右をカット
+        sHeight = videoHeight;
+        sWidth = videoHeight * targetAspect;
+        sx = (videoWidth - sWidth) / 2;
+        sy = 0;
+      } else {
+        // 動画の方が縦に長い ⇒ 上下をカット
+        sWidth = videoWidth;
+        sHeight = videoWidth / targetAspect;
+        sx = 0;
+        sy = (videoHeight - sHeight) / 2;
+      }
+
+      canvas.width = sWidth;
+      canvas.height = sHeight;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, width, height);
+      ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
       capturedImageDataUrl = canvas.toDataURL("image/jpeg");
       previewImage.src = capturedImageDataUrl;
       previewWrapper.classList.remove("hidden");
+    }
+
+    // ★ 撮影した画像をキャンセル
+    function cancelImage() {
+      capturedImageDataUrl = null;
+      previewImage.src = "";
+      previewWrapper.classList.add("hidden");
     }
 
     // ==== ローカルストレージ ====
@@ -308,7 +347,6 @@
         return;
       }
 
-      // 新しい順に並べる
       const sorted = [...items].sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
@@ -415,9 +453,7 @@
       // フォーム・プレビューをリセット
       itemNameInput.value = "";
       commentInput.value = "";
-      capturedImageDataUrl = null;
-      previewImage.src = "";
-      previewWrapper.classList.add("hidden");
+      cancelImage(); // 撮影画像をクリア
       updateNowDisplay();
 
       renderItemList(newItem.id);
@@ -437,6 +473,7 @@
       startCameraBtn.addEventListener("click", startCamera);
       stopCameraBtn.addEventListener("click", stopCamera);
       captureBtn.addEventListener("click", captureImage);
+      cancelImageBtn.addEventListener("click", cancelImage);
       saveItemBtn.addEventListener("click", handleSaveItem);
     });
 
