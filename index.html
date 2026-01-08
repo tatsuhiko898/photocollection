@@ -4,17 +4,15 @@
   <meta charset="UTF-8" />
   <title>購入品記録アプリ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="min-h-screen bg-slate-100 flex justify-center items-start p-4">
   <div class="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-6 space-y-6">
     <!-- ヘッダー -->
     <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold text-slate-800">
-          購入品記録アプリ
-        </h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-800">購入品記録アプリ</h1>
         <p class="text-sm text-slate-500 mt-1">
           カメラで撮影して、購入品の情報といっしょに保存します（ブラウザのローカルストレージに保存）。
         </p>
@@ -26,20 +24,21 @@
     </header>
 
     <main class="grid md:grid-cols-2 gap-6">
-      <!-- 左側：カメラ＋登録フォーム -->
+      <!-- 左：カメラ＋登録フォーム -->
       <section class="space-y-4">
-        <!-- カメラ表示部分 -->
         <div class="space-y-3">
           <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
             <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">1</span>
             カメラで撮影
           </h2>
+
           <div class="relative bg-black rounded-2xl overflow-hidden aspect-video flex items-center justify-center">
             <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
             <div id="noCameraMessage" class="absolute inset-0 flex items-center justify-center text-white text-sm bg-black/60 hidden">
               カメラを利用できませんでした
             </div>
           </div>
+
           <div class="flex flex-wrap gap-2">
             <button id="startCameraBtn" class="px-4 py-2 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
               カメラ起動
@@ -52,7 +51,6 @@
             </button>
           </div>
 
-          <!-- ★ 追加：登録中止ボタン -->
           <div class="mt-2">
             <button id="cancelImageBtn" class="px-4 py-2 text-sm font-medium rounded-full bg-rose-500 text-white hover:bg-rose-600 transition">
               登録中止（撮影した写真を破棄）
@@ -61,121 +59,148 @@
 
           <canvas id="canvas" class="hidden"></canvas>
 
-          <!-- ★ プレビューを横長で表示 -->
           <div id="previewWrapper" class="mt-2 hidden w-full rounded-xl border border-slate-200 bg-slate-50 overflow-hidden aspect-video">
             <img id="previewImage" alt="撮影プレビュー" class="w-full h-full object-cover" />
           </div>
         </div>
 
-        <!-- 登録フォーム -->
         <div class="space-y-3 pt-4 border-t border-slate-100">
           <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
             <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">2</span>
             購入品情報を入力
           </h2>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">
-              品名
-              <input
-                id="itemNameInput"
-                type="text"
-                placeholder="例: ノートパソコン用マウス"
-                class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2"
-              />
-            </label>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">
-              コメント（任意）
-              <textarea
-                id="commentInput"
-                rows="3"
-                placeholder="例: セールで購入、予備として。"
-                class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2"
-              ></textarea>
-            </label>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">
-              登録日時
-              <input
-                id="dateTimeDisplay"
-                type="text"
-                class="mt-1 w-full rounded-xl border-slate-200 bg-slate-50 text-sm px-3 py-2 text-slate-600"
-                readonly
-              />
-            </label>
-            <p class="text-xs text-slate-400">
-              登録ボタンを押した時点の日時が保存されます。
-            </p>
-          </div>
-          <button
-            id="saveItemBtn"
-            class="w-full mt-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
-          >
+
+          <label class="block text-sm font-medium text-slate-700">
+            品名
+            <input id="itemNameInput" type="text" placeholder="例: ノートパソコン用マウス"
+              class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2" />
+          </label>
+
+          <label class="block text-sm font-medium text-slate-700">
+            コメント（任意）
+            <textarea id="commentInput" rows="3" placeholder="例: セールで購入、予備として。"
+              class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2"></textarea>
+          </label>
+
+          <label class="block text-sm font-medium text-slate-700">
+            登録日時
+            <input id="dateTimeDisplay" type="text"
+              class="mt-1 w-full rounded-xl border-slate-200 bg-slate-50 text-sm px-3 py-2 text-slate-600" readonly />
+          </label>
+
+          <button id="saveItemBtn"
+            class="w-full mt-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm">
             この内容で登録
           </button>
         </div>
       </section>
 
-      <!-- 右側：一覧＋詳細 -->
+      <!-- 右：一覧＋詳細 -->
       <section class="space-y-4">
         <!-- 一覧 -->
         <div class="space-y-3">
-          <h2 class="text-lg font-semibold text-slate-800 flex items-center justify-between">
-            <span class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">3</span>
               登録済み一覧
-            </span>
-          </h2>
+            </h2>
+
+            <div class="flex items-center gap-2">
+              <!-- CSVエクスポート -->
+              <button id="exportCsvBtn"
+                class="px-3 py-2 text-xs font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-900 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled>
+                CSVエクスポート
+              </button>
+
+              <!-- 全件削除 -->
+              <button id="deleteAllBtn"
+                class="px-3 py-2 text-xs font-semibold rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled>
+                全件削除
+              </button>
+            </div>
+          </div>
+
           <div class="rounded-2xl border border-slate-200 bg-slate-50/80 max-h-72 overflow-y-auto">
-            <ul id="itemList" class="divide-y divide-slate-200">
-              <!-- JSで挿入 -->
-            </ul>
+            <ul id="itemList" class="divide-y divide-slate-200"></ul>
           </div>
           <p class="text-xs text-slate-400">
-            品名をクリックすると、右下に詳細が表示されます。
+            行をクリックで詳細表示。右の削除ボタンで1件削除できます。
           </p>
         </div>
 
-        <!-- 詳細表示 -->
+        <!-- 詳細表示（閲覧モード） -->
         <div class="space-y-3">
-          <h2 class="text-lg font-semibold text-slate-800">
-            詳細表示
-          </h2>
+          <h2 class="text-lg font-semibold text-slate-800">詳細表示</h2>
+
           <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
             <div class="flex items-start justify-between gap-3">
               <div>
-                <p id="detailName" class="font-semibold text-slate-800 text-base">
-                  項目が選択されていません
-                </p>
-                <p id="detailDateTime" class="text-xs text-slate-500 mt-1">
-                  登録日時: -
-                </p>
+                <p id="detailName" class="font-semibold text-slate-800 text-base">項目が選択されていません</p>
+                <p id="detailDateTime" class="text-xs text-slate-500 mt-1">登録日時: -</p>
               </div>
               <span id="detailBadge" class="inline-flex items-center px-2 py-1 rounded-full bg-slate-100 text-slate-500 text-xs">
                 未選択
               </span>
             </div>
-            <div>
+
+            <!-- 閲覧コメント -->
+            <div id="viewCommentBlock">
               <p class="text-xs font-medium text-slate-600 mb-1">コメント</p>
-              <p id="detailComment" class="text-sm text-slate-700 bg-slate-50 rounded-xl px-3 py-2 min-h-[2.5rem]">
-                -
-              </p>
+              <p id="detailComment" class="text-sm text-slate-700 bg-slate-50 rounded-xl px-3 py-2 min-h-[2.5rem]">-</p>
             </div>
+
+            <!-- 編集モード -->
+            <div id="editBlock" class="hidden space-y-3">
+              <label class="block text-xs font-medium text-slate-600">
+                品名（編集）
+                <input id="editNameInput" type="text"
+                  class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2" />
+              </label>
+              <label class="block text-xs font-medium text-slate-600">
+                コメント（編集）
+                <textarea id="editCommentInput" rows="3"
+                  class="mt-1 w-full rounded-xl border-slate-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm px-3 py-2"></textarea>
+              </label>
+
+              <div class="flex gap-2">
+                <button id="saveEditBtn"
+                  class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
+                  編集を保存
+                </button>
+                <button id="cancelEditBtn"
+                  class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition">
+                  キャンセル
+                </button>
+              </div>
+            </div>
+
             <div>
               <p class="text-xs font-medium text-slate-600 mb-1">画像</p>
-              <!-- ★ 詳細も横長で表示 -->
               <div class="border border-slate-200 rounded-xl bg-slate-50 w-full aspect-video flex items-center justify-center overflow-hidden">
-                <img
-                  id="detailImage"
-                  alt="購入品画像"
-                  class="w-full h-full object-cover rounded-xl hidden"
-                />
-                <span id="noDetailImageText" class="text-xs text-slate-400">
-                  画像が登録されていません
-                </span>
+                <img id="detailImage" alt="購入品画像" class="w-full h-full object-cover rounded-xl hidden" />
+                <span id="noDetailImageText" class="text-xs text-slate-400">画像が登録されていません</span>
               </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 space-y-2">
+              <div class="flex gap-2">
+                <button id="editBtn"
+                  class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-900 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled>
+                  編集
+                </button>
+
+                <button id="deleteSelectedBtn"
+                  class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  disabled>
+                  この項目を削除
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400">
+                ※編集できるのは「品名」「コメント」です（画像の差し替えも必要なら追加できます）。
+              </p>
             </div>
           </div>
         </div>
@@ -184,14 +209,13 @@
   </div>
 
   <script>
-    // ==== 定数・変数 ====
     const STORAGE_KEY = "purchaseRecords";
-
     let videoStream = null;
     let capturedImageDataUrl = null;
     let items = [];
+    let selectedId = null;
+    let isEditing = false;
 
-    // ==== DOM取得 ====
     const video = document.getElementById("video");
     const noCameraMessage = document.getElementById("noCameraMessage");
     const canvas = document.getElementById("canvas");
@@ -209,14 +233,25 @@
     const saveItemBtn = document.getElementById("saveItemBtn");
 
     const itemList = document.getElementById("itemList");
+    const deleteAllBtn = document.getElementById("deleteAllBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+
     const detailName = document.getElementById("detailName");
     const detailDateTime = document.getElementById("detailDateTime");
     const detailComment = document.getElementById("detailComment");
     const detailImage = document.getElementById("detailImage");
     const noDetailImageText = document.getElementById("noDetailImageText");
     const detailBadge = document.getElementById("detailBadge");
+    const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
+    const editBtn = document.getElementById("editBtn");
 
-    // ==== ユーティリティ ====
+    const viewCommentBlock = document.getElementById("viewCommentBlock");
+    const editBlock = document.getElementById("editBlock");
+    const editNameInput = document.getElementById("editNameInput");
+    const editCommentInput = document.getElementById("editCommentInput");
+    const saveEditBtn = document.getElementById("saveEditBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
     function formatDateTime(isoString) {
       if (!isoString) return "-";
       const d = new Date(isoString);
@@ -233,7 +268,6 @@
       dateTimeDisplay.value = formatDateTime(new Date().toISOString());
     }
 
-    // ==== カメラ制御 ====
     async function startCamera() {
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -260,7 +294,7 @@
       }
     }
 
-    // ★ 横長（画面と同じ比率）で切り取って保存
+    // 横長で切り取って保存
     function captureImage() {
       if (!videoStream) {
         alert("先にカメラを起動してください。");
@@ -275,19 +309,17 @@
 
       const displayWidth = video.clientWidth || videoWidth;
       const displayHeight = video.clientHeight || videoHeight;
-      const targetAspect = displayWidth / displayHeight; // 表示中の横長比率
+      const targetAspect = displayWidth / displayHeight;
       const videoAspect = videoWidth / videoHeight;
 
       let sx, sy, sWidth, sHeight;
 
       if (videoAspect > targetAspect) {
-        // 動画の方が横に広い ⇒ 左右をカット
         sHeight = videoHeight;
         sWidth = videoHeight * targetAspect;
         sx = (videoWidth - sWidth) / 2;
         sy = 0;
       } else {
-        // 動画の方が縦に長い ⇒ 上下をカット
         sWidth = videoWidth;
         sHeight = videoWidth / targetAspect;
         sx = 0;
@@ -296,6 +328,7 @@
 
       canvas.width = sWidth;
       canvas.height = sHeight;
+
       const ctx = canvas.getContext("2d");
       ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
@@ -304,27 +337,18 @@
       previewWrapper.classList.remove("hidden");
     }
 
-    // ★ 撮影した画像をキャンセル
     function cancelImage() {
       capturedImageDataUrl = null;
       previewImage.src = "";
       previewWrapper.classList.add("hidden");
     }
 
-    // ==== ローカルストレージ ====
     function loadItemsFromStorage() {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        items = [];
-        return;
-      }
+      if (!raw) { items = []; return; }
       try {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          items = parsed;
-        } else {
-          items = [];
-        }
+        items = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
         console.error("ローカルストレージ読み込みエラー:", e);
         items = [];
@@ -335,9 +359,36 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
 
-    // ==== 一覧描画 ====
-    function renderItemList(selectedId = null) {
+    function updateTopButtonsState() {
+      const hasItems = items.length > 0;
+      deleteAllBtn.disabled = !hasItems;
+      exportCsvBtn.disabled = !hasItems;
+    }
+
+    function clearDetail() {
+      selectedId = null;
+      isEditing = false;
+      detailName.textContent = "項目が選択されていません";
+      detailDateTime.textContent = "登録日時: -";
+      detailComment.textContent = "-";
+      detailImage.src = "";
+      detailImage.classList.add("hidden");
+      noDetailImageText.classList.remove("hidden");
+
+      detailBadge.textContent = "未選択";
+      detailBadge.className = "inline-flex items-center px-2 py-1 rounded-full bg-slate-100 text-slate-500 text-xs";
+
+      deleteSelectedBtn.disabled = true;
+      editBtn.disabled = true;
+
+      // UI切替
+      viewCommentBlock.classList.remove("hidden");
+      editBlock.classList.add("hidden");
+    }
+
+    function renderItemList() {
       itemList.innerHTML = "";
+      updateTopButtonsState();
 
       if (!items.length) {
         const li = document.createElement("li");
@@ -347,22 +398,23 @@
         return;
       }
 
-      const sorted = [...items].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
+      const sorted = [...items].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       sorted.forEach((item) => {
         const li = document.createElement("li");
-        const isSelected = item.id === selectedId;
-        li.className =
-          "flex items-center justify-between px-4 py-3 text-sm cursor-pointer hover:bg-slate-100 transition " +
-          (isSelected ? "bg-blue-50" : "");
+        const isSelectedRow = item.id === selectedId;
 
-        const left = document.createElement("div");
-        left.className = "flex flex-col";
+        li.className =
+          "flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-slate-100 transition " +
+          (isSelectedRow ? "bg-blue-50" : "");
+
+        const left = document.createElement("button");
+        left.type = "button";
+        left.className = "flex-1 text-left flex flex-col min-w-0";
+        left.addEventListener("click", () => showDetail(item.id));
+
         const nameSpan = document.createElement("span");
-        nameSpan.className =
-          "font-medium " + (isSelected ? "text-blue-700" : "text-slate-800");
+        nameSpan.className = "font-medium truncate " + (isSelectedRow ? "text-blue-700" : "text-slate-800");
         nameSpan.textContent = item.name || "(無題)";
 
         const dateSpan = document.createElement("span");
@@ -373,32 +425,38 @@
         left.appendChild(dateSpan);
 
         const right = document.createElement("div");
-        right.className = "flex items-center gap-2";
-        const hasImageBadge = document.createElement("span");
-        hasImageBadge.className =
-          "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] " +
-          (item.imageDataUrl
-            ? "bg-emerald-50 text-emerald-600"
-            : "bg-slate-100 text-slate-500");
-        hasImageBadge.textContent = item.imageDataUrl ? "画像あり" : "画像なし";
+        right.className = "flex items-center gap-2 shrink-0";
 
-        right.appendChild(hasImageBadge);
+        const badge = document.createElement("span");
+        badge.className =
+          "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] " +
+          (item.imageDataUrl ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500");
+        badge.textContent = item.imageDataUrl ? "画像あり" : "画像なし";
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "px-3 py-1.5 text-xs font-semibold rounded-full bg-rose-600 text-white hover:bg-rose-700 transition";
+        delBtn.textContent = "削除";
+        delBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteOne(item.id);
+        });
+
+        right.appendChild(badge);
+        right.appendChild(delBtn);
 
         li.appendChild(left);
         li.appendChild(right);
-
-        li.addEventListener("click", () => {
-          showDetail(item.id);
-        });
-
         itemList.appendChild(li);
       });
     }
 
-    // ==== 詳細表示 ====
     function showDetail(id) {
       const item = items.find((i) => i.id === id);
       if (!item) return;
+
+      selectedId = id;
+      isEditing = false;
 
       detailName.textContent = item.name || "(無題)";
       detailDateTime.textContent = "登録日時: " + formatDateTime(item.createdAt);
@@ -415,13 +473,153 @@
       }
 
       detailBadge.textContent = "表示中";
-      detailBadge.className =
-        "inline-flex items-center px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-xs";
+      detailBadge.className = "inline-flex items-center px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-xs";
 
-      renderItemList(id); // 選択状態を更新
+      deleteSelectedBtn.disabled = false;
+      editBtn.disabled = false;
+
+      // 閲覧モードに戻す
+      viewCommentBlock.classList.remove("hidden");
+      editBlock.classList.add("hidden");
+
+      renderItemList();
     }
 
-    // ==== 登録処理 ====
+    function deleteOne(id) {
+      const item = items.find((i) => i.id === id);
+      if (!item) return;
+      if (isEditing) {
+        const ok = confirm("編集中です。編集を破棄して削除しますか？");
+        if (!ok) return;
+      }
+
+      const ok = confirm(`「${item.name || "（無題）"}」を削除しますか？`);
+      if (!ok) return;
+
+      items = items.filter((i) => i.id !== id);
+      saveItemsToStorage();
+
+      if (selectedId === id) {
+        if (items.length) {
+          const next = [...items].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+          showDetail(next.id);
+        } else {
+          clearDetail();
+        }
+      }
+
+      renderItemList();
+      updateTopButtonsState();
+    }
+
+    function deleteAll() {
+      if (!items.length) return;
+      if (isEditing) {
+        const ok2 = confirm("編集中です。編集を破棄して全件削除しますか？");
+        if (!ok2) return;
+      }
+      const ok = confirm("登録した情報をすべて削除します。よろしいですか？");
+      if (!ok) return;
+
+      items = [];
+      saveItemsToStorage();
+      clearDetail();
+      renderItemList();
+      updateTopButtonsState();
+    }
+
+    // ===== 編集機能 =====
+    function startEdit() {
+      if (!selectedId) return;
+      const item = items.find(i => i.id === selectedId);
+      if (!item) return;
+
+      isEditing = true;
+      editNameInput.value = item.name || "";
+      editCommentInput.value = item.comment || "";
+
+      // UI切替
+      viewCommentBlock.classList.add("hidden");
+      editBlock.classList.remove("hidden");
+      detailBadge.textContent = "編集中";
+      detailBadge.className = "inline-flex items-center px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs";
+    }
+
+    function cancelEdit() {
+      if (!selectedId) return;
+      isEditing = false;
+
+      // UI切替
+      viewCommentBlock.classList.remove("hidden");
+      editBlock.classList.add("hidden");
+      // 表示を元に戻す
+      showDetail(selectedId);
+    }
+
+    function saveEdit() {
+      if (!selectedId) return;
+      const item = items.find(i => i.id === selectedId);
+      if (!item) return;
+
+      const newName = editNameInput.value.trim();
+      const newComment = editCommentInput.value.trim();
+
+      if (!newName) {
+        alert("品名は空にできません。");
+        return;
+      }
+
+      item.name = newName;
+      item.comment = newComment;
+
+      saveItemsToStorage();
+      isEditing = false;
+      showDetail(selectedId);
+      renderItemList();
+    }
+
+    // ===== CSVエクスポート =====
+    function csvEscape(value) {
+      const s = (value ?? "").toString();
+      // 改行やカンマ、ダブルクォート対策
+      if (/[",\n\r]/.test(s)) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }
+
+    function exportCsv() {
+      if (!items.length) return;
+
+      // 新しい順で出す
+      const sorted = [...items].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      const header = ["id", "name", "comment", "createdAt", "createdAtFormatted", "hasImage"].join(",");
+      const rows = sorted.map(i => {
+        const hasImage = i.imageDataUrl ? "1" : "0";
+        return [
+          csvEscape(i.id),
+          csvEscape(i.name || ""),
+          csvEscape(i.comment || ""),
+          csvEscape(i.createdAt || ""),
+          csvEscape(formatDateTime(i.createdAt)),
+          csvEscape(hasImage),
+        ].join(",");
+      });
+
+      const csvText = [header, ...rows].join("\n");
+      const blob = new Blob([csvText], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "purchase_records.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
     function handleSaveItem() {
       const name = itemNameInput.value.trim();
       const comment = commentInput.value.trim();
@@ -432,9 +630,7 @@
       }
 
       if (!capturedImageDataUrl) {
-        const ok = confirm(
-          "画像が撮影されていません。このまま画像なしで登録しますか？"
-        );
+        const ok = confirm("画像が撮影されていません。このまま画像なしで登録しますか？");
         if (!ok) return;
       }
 
@@ -450,24 +646,27 @@
       items.push(newItem);
       saveItemsToStorage();
 
-      // フォーム・プレビューをリセット
       itemNameInput.value = "";
       commentInput.value = "";
-      cancelImage(); // 撮影画像をクリア
+      cancelImage();
       updateNowDisplay();
 
-      renderItemList(newItem.id);
       showDetail(newItem.id);
+      renderItemList();
+      updateTopButtonsState();
     }
 
-    // ==== イベント設定 ====
     document.addEventListener("DOMContentLoaded", () => {
       updateNowDisplay();
       loadItemsFromStorage();
       renderItemList();
+      updateTopButtonsState();
 
       if (items.length) {
-        showDetail(items[0].id);
+        const first = [...items].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+        showDetail(first.id);
+      } else {
+        clearDetail();
       }
 
       startCameraBtn.addEventListener("click", startCamera);
@@ -475,12 +674,21 @@
       captureBtn.addEventListener("click", captureImage);
       cancelImageBtn.addEventListener("click", cancelImage);
       saveItemBtn.addEventListener("click", handleSaveItem);
+
+      deleteAllBtn.addEventListener("click", deleteAll);
+      exportCsvBtn.addEventListener("click", exportCsv);
+
+      deleteSelectedBtn.addEventListener("click", () => {
+        if (!selectedId) return;
+        deleteOne(selectedId);
+      });
+
+      editBtn.addEventListener("click", startEdit);
+      cancelEditBtn.addEventListener("click", cancelEdit);
+      saveEditBtn.addEventListener("click", saveEdit);
     });
 
-    // ページを離れるときにカメラを停止
-    window.addEventListener("beforeunload", () => {
-      stopCamera();
-    });
+    window.addEventListener("beforeunload", () => stopCamera());
   </script>
 </body>
 </html>
